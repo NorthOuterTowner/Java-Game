@@ -6,12 +6,20 @@ public class Bullet {
 	private int x;
 	private int y;
 	private int attack;
+	private char status='s';
 	private ArrayList<Player> people;
-	public Bullet(int x,int y,int attack,ArrayList<Player> people) {
+	public Bullet(int x,int y,int attack,ArrayList<Player> people,char status) {
 		this.x=x;
 		this.y=y;
 		this.attack=attack;
 		this.people=people;
+		this.status=status;
+	}
+	public char getStatus() {
+		return this.status;
+	}
+	public void setStatus(char status) {
+		this.status=status;
 	}
 	public int getX() {
 		return this.x;
