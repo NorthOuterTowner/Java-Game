@@ -109,6 +109,7 @@ public class Sign{
 		}catch(IOException ex) {}
 		return false;
 	}
+	/*在文件中添加信息*/
 	public boolean signUpJudge(String message) {
 		try {
 			BufferedReader reader=new BufferedReader(new FileReader("sign.txt"));
