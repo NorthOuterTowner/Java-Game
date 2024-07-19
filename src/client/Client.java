@@ -1,5 +1,7 @@
 package client;
 
+//396-397 is important of 3 people
+
 /*
  * Client.java
  * |
@@ -41,6 +43,7 @@ public class Client extends JFrame implements KeyListener{
 	//3人对战
 	private ArrayList<Player> people= new ArrayList<Player>(3);
 	private Player waitPlayer;
+	private boolean addNewPlayer=true;
 	private JPanel infoPanels=new JPanel();
 	private GamePanel gamePanel=new GamePanel(people,infoPanels);
 	
@@ -348,7 +351,7 @@ public class Client extends JFrame implements KeyListener{
 	
 	/*Client类的内部类*/
 	class RemoteReader implements Runnable{
-		@Override
+
 		public void run(){
 			try {
 	            //
@@ -390,13 +393,25 @@ public class Client extends JFrame implements KeyListener{
 	            		String func=subContent.split(":")[1];
 	            		if(type.equals("join")) {
 	            			String addName=subContent.split(":")[1];
-	            			for(Player player:people) {
+	            			
+	            			/**2 Version
+	            			 * for(Player player:people) {
 	            				if(!addName.equals(player.getName())) {
-	            					//people.add(new Player(addName));
 	            					waitPlayer=new Player(addName);
-	            					
 	            				}
+	            			}
+	            			 */
+	            			
+	            			addNewPlayer=true;
+	            			for(Player player:people) {
+	            				if(addName.equals(player.getName())) {
+	            					addNewPlayer=false;
 	            				}
+	            			}
+	            			if(addNewPlayer) {
+	            				waitPlayer=new Player(addName);
+	            			}
+	            			
 	            			if(waitPlayer!=null) {
 	            				people.add(waitPlayer);
 	            			}
@@ -644,11 +659,11 @@ class GamePanel extends JPanel{
 					break;
 			}	*/
 			
-			
+		/**Player 2*/
 		Player player2=people.get(1);
-		if(player2.getHeart()<=0) {
+		/*if(player2.getHeart()<=0) {
 			lose();
-		}
+		}*/
 		g.drawString(" Name:"+player2.getName(), 1150, 250);
 		g.drawString(" Heart:"+player2.getHeart(), 1150, 300);
 		g.drawString(" Attack:"+player2.getAttack(), 1150, 350);
@@ -712,7 +727,7 @@ class GamePanel extends JPanel{
 						people.get(index).minusHeart(attack);
 					}
 					if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>800) {
-						people.get(0).setBehaviour('0');
+						people.get(1).setBehaviour('0');
 						bullets.remove(bullet);
 					}
 					repaint();
@@ -738,7 +753,100 @@ class GamePanel extends JPanel{
 			default:
 				break;
 		}	
-		
+			/**Player 3*/
+			/*Player player3=people.get(2);
+			if(player3.getHeart()<=0) {
+				lose();
+			}
+			g.drawString(" Name:"+player3.getName(), 1150, 450);
+			g.drawString(" Heart:"+player3.getHeart(), 1150, 500);
+			g.drawString(" Attack:"+player3.getAttack(), 1150, 550);
+				Image image3;//人物贴图
+				int x2=people.get(2).getX();
+				int y2=people.get(2).getY();
+				
+				File file2 = new File("pic//"+people.get(2).getStatus()+".jpg");
+				try {
+					image3 = ImageIO.read(file2);
+					g.drawImage(image3,x2, y2, this);
+					
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				switch(people.get(2).getBehaviour()) {
+				case 'j':
+					g.setColor(Color.RED);
+					for(Bullet bullet:bullets) {
+					g.fillRect(bullet.getX(), bullet.getY(), 10, 10);
+					if(bullet.getStatus()=='w') {
+						bullet.jminusY();
+					}else if(bullet.getStatus()=='a') {
+						bullet.jminusX();
+					}else if(bullet.getStatus()=='s') {
+						bullet.jaddY();
+					}else if(bullet.getStatus()=='d') {
+						bullet.jaddX();
+					}else {
+						bullet.jaddX();
+					}
+					if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>1000) {
+						people.get(2).setBehaviour('0');
+						bullets.remove(bullet);
+					}
+					int index=bullet.hurt();
+					int attack=bullet.getAttack();
+					if(index!=-1) {
+						people.get(index).minusHeart(attack);
+					}
+					repaint();
+					}
+					break;
+				case 'k':
+					g.setColor(Color.BLUE);
+					for(Bullet bullet:bullets) {
+					g.fillRect(bullet.getX(), bullet.getY(), 20, 20);
+					if(bullet.getStatus()=='w') {
+						bullet.kminusY();
+					}else if(bullet.getStatus()=='a') {
+						bullet.kminusX();
+					}else if(bullet.getStatus()=='s') {
+						bullet.kaddY();
+					}else if(bullet.getStatus()=='d') {
+						bullet.kaddX();
+					}else {}
+						int index=bullet.hurt();
+						int attack=bullet.getAttack();
+						if(index!=-1) {
+							people.get(index).minusHeart(attack);
+						}
+						if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>800) {
+							people.get(2).setBehaviour('0');
+							bullets.remove(bullet);
+						}
+						repaint();
+					}
+
+					break;
+				case 'u':
+					for(int j=0;j<12;j++) {
+						Image Up;
+						File fileUp = new File("pic//Level Up Effect Frame"+j+".png");
+						try {
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException e) {}
+							image1 = ImageIO.read(fileUp);
+							Up=ImageIO.read(fileUp);
+							g.drawImage(Up,x0-50, y0-50, this);
+						} catch (IOException e) {}
+					}
+					people.get(0).setBehaviour('0');
+					repaint();
+					break;
+				default:
+					break;
+			}	
+					*/
 			
 			
 			
