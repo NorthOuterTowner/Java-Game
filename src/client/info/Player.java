@@ -9,10 +9,26 @@ public class Player implements Serializable{
 	private int y;
 	private int heart=100;
 	private int attack=10;
+	//status记录用户状态，使用户在发射子弹时根据朝向发射
+	private char status='s';
+	//behaviour记录用户行为
+	private char behaviour='s';
 	public Player(String name) {
 		this.name=name;
 		this.x=100;
 		this.y=100;
+	}
+	public void setBehaviour(char behaviour) {
+		this.behaviour=behaviour;
+	}
+	public char getBehaviour() {
+		return this.behaviour;
+	}
+	public void setStatus(char status) {
+		this.status=status;
+	}
+	public char getStatus() {
+		return this.status;
 	}
 	public String getName() {
 		return this.name;
