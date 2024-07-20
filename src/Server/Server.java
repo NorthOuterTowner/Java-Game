@@ -110,7 +110,7 @@ public class Server {
 				textinfo.append(allMessage+"\n");
 				this.hallClient+=1;
 				textinfo.append(this.hallClient+"\n");
-				if(this.hallClient==2) {
+				if(this.hallClient==3) {
 					textinfo.append("hall is start.\n");
 					broadcastMessage("{hall:-1}");
 				}
