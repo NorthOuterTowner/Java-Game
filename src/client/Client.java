@@ -31,7 +31,8 @@ public class Client extends JFrame implements KeyListener{
 	private static final int drownMaxY=670;
 	
 	private static final int port=4450;
-	
+	private boolean livePlayer2=true;
+	private boolean livePlayer3=true;
 	private boolean in=false;
 	
 	private Socket connection;
@@ -82,7 +83,7 @@ public class Client extends JFrame implements KeyListener{
 			e.printStackTrace();
 		}*/
 		//client.init();
-		
+		//大厅判断人数
 		Hall hall=new Hall();
 		boolean outJustOnes=true;
 		while(true) {
@@ -98,14 +99,13 @@ public class Client extends JFrame implements KeyListener{
 				hall.close();
 				break;
 			}else {
-				//System.out.println("Hall wait");
-				//System.out.println(client.in);
+				System.out.println("Hall wait");
 			}
 		}
 		
-		ObjectInputStream playerIn;
+		/*ObjectInputStream playerIn;
 		Player playerAnother;
-		Object obj;
+		Object obj;*/
 		//Use String sent by Server build object
 		
 		/*从文件中读取其他用户的信息*/
@@ -133,7 +133,9 @@ public class Client extends JFrame implements KeyListener{
 			client.init();
 			new AudioPlayer().playSound("tst.wav");
 		}*/
+		//初始化界面
 		client.init();
+		//播放背景音乐
 		new AudioPlayer().playSound("tst.wav");
 	}
 	public void toServer(String type) {
@@ -146,7 +148,7 @@ public class Client extends JFrame implements KeyListener{
 			message="{attack2:"+people.get(0).getName()+"}";
 		}else {
 			/*直接传出*/
-			//hall内容，attacked内容
+			//hall内容，attacked内容，*heart内容，*die内容
 			serverOut.println(type);
 			return;
 		}
@@ -184,10 +186,11 @@ public class Client extends JFrame implements KeyListener{
 	public boolean couldMove(char orient) {
 		int x=people.get(0).getX();
 		int y=people.get(0).getY();
-		//System.out.println("Thjis heart:"+people.get(0).getHeart());
 		boolean die=drown(x,y);
 		if(die) {
 			people.get(0).setHeart(0);
+			toServer("{die:"+people.get(0).getName()+"}");
+			lose();
 			people.remove(0);
 			repaint();
 		}
@@ -204,16 +207,12 @@ public class Client extends JFrame implements KeyListener{
 				return Obstacle.stopa(x, y);
 			}
 		}else if(orient=='s') {
-			//650
-			//270~580
 			if(y>650) {
 				return false;
 			}else {
 				return Obstacle.stops(x, y);
 			}
 		}else if(orient=='d'){
-			//1000
-			//550~750
 			if(x>1000) {
 				return false;
 			}else {
@@ -224,8 +223,6 @@ public class Client extends JFrame implements KeyListener{
 	}
 	private boolean drown(int x,int y) {
 		if(x>this.drownMinX&&y<this.drownMaxY&&y>this.drownMinY) {
-			this.removeAll();
-			this.getContentPane().add(new JLabel("You are lose"));
 			return true;
 		}
 		return false;
@@ -238,8 +235,6 @@ public class Client extends JFrame implements KeyListener{
 		if(code==87) {
 			if(couldMove('w')) {
 				people.get(0).addY();
-				people.get(0).setX(people.get(0).getX());
-				people.get(0).setY(people.get(0).getY());
 				toServer("{motive:"+people.get(0).getName()+":"+people.get(0).getX()+":"+people.get(0).getY()+":w}");
 				
 				/*Example: {motive:lrz:100:90:w}
@@ -257,8 +252,6 @@ public class Client extends JFrame implements KeyListener{
 		}else if(code==65) {
 			if(couldMove('a')) {
 				people.get(0).minusX();
-				people.get(0).setX(people.get(0).getX());
-				people.get(0).setY(people.get(0).getY());
 				toServer("{motive:"+people.get(0).getName()+":"+people.get(0).getX()+":"+people.get(0).getY()+":a}");
 			}
 			people.get(0).setStatus('a');
@@ -268,8 +261,6 @@ public class Client extends JFrame implements KeyListener{
 		}else if(code==83) {
 			if(couldMove('s')) {
 			people.get(0).minusY();
-			people.get(0).setX(people.get(0).getX());
-			people.get(0).setY(people.get(0).getY());
 			toServer("{motive:"+people.get(0).getName()+":"+people.get(0).getX()+":"+people.get(0).getY()+":s}");
 			}
 			people.get(0).setStatus('s');
@@ -278,31 +269,22 @@ public class Client extends JFrame implements KeyListener{
 		}else if(code==68) {
 			if(couldMove('d')) {
 			people.get(0).addX();
-			people.get(0).setX(people.get(0).getX());
-			people.get(0).setY(people.get(0).getY());
 			toServer("{motive:"+people.get(0).getName()+":"+people.get(0).getX()+":"+people.get(0).getY()+":d}");
 			}
 			people.get(0).setStatus('d');
 			people.get(0).setBehaviour('d');
-			//gamePanel.setstatus('d');
 			gamePanel.repaint();
 		}else if(code==74){
-			people.get(0).setX(people.get(0).getX());
-			people.get(0).setY(people.get(0).getY());
 			gamePanel.bullets.add(new Bullet(people.get(0).getX(),people.get(0).getY(),10,people,people.get(0).getStatus()));
 			toServer("attack1");
 			people.get(0).setBehaviour('j');
 			gamePanel.repaint();
 		}else if(code==75) {
-			people.get(0).setX(people.get(0).getX());
-			people.get(0).setY(people.get(0).getY());
 			gamePanel.bullets.add(new Bullet(people.get(0).getX(),people.get(0).getY(),20,people,people.get(0).getStatus()));
 			toServer("attack2");
 			people.get(0).setBehaviour('k');
 			gamePanel.repaint();
 		}else if(code==85){//key u
-			people.get(0).setX(people.get(0).getX());
-			people.get(0).setY(people.get(0).getY());
 			people.get(0).setBehaviour('u');
 		}
 	}
@@ -325,17 +307,6 @@ public class Client extends JFrame implements KeyListener{
         	System.err.println(e.getMessage());
         }
 	    
-	    
-	    	
-		try {
-			playerOut= new ObjectOutputStream(new FileOutputStream("player.dat",true));
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		this.addKeyListener(this);
 		this.setSize(new Dimension(1300,800));
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -347,21 +318,35 @@ public class Client extends JFrame implements KeyListener{
 	    thread.start();
 	}
 
+	public static void lose() {
+		JFrame frame = new JFrame("Background Image Example");
+        frame.setSize(1600, 1000);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        JPanel panel = new JPanel(null) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                ImageIcon backgroundImage = new ImageIcon("pic/lose.jpg");
+                g.drawImage(backgroundImage.getImage(), 0, 0, getWidth(), getHeight(), null);
+            }
+        };
+        JButton exitButton = new JButton("Exit The Game");
+        exitButton.addActionListener(e -> System.exit(0)); 
+        exitButton.setBounds(600, 400, 100, 50);
+        panel.add(exitButton);
+        frame.setContentPane(panel);
+        frame.setVisible(true);
+	}
+	
 	
 	
 	/*Client类的内部类*/
-	class RemoteReader implements Runnable{
+private class RemoteReader implements Runnable{
 
 		public void run(){
 			try {
-	            //
 				String message;
-				//
 	            while ((message = serverIn.readLine()) != null) {
-	            	/*for(int z=0;z<10000;z++) {
-	            		System.out.println(message+"Client");
-	            	}*/
-	            	System.out.println(message+"Client");
 	            	if(message.equals("{null}")) {
 	            		continue;
 	            	}
@@ -443,19 +428,16 @@ public class Client extends JFrame implements KeyListener{
 	        }
 		}
 	}
-}
 
 
-class GamePanel extends JPanel{
+private class GamePanel extends JPanel{
 	public ArrayList<Bullet> bullets=new ArrayList<Bullet>(20);
-	public ArrayList<Player> people;
 	public JPanel infoPanels;
+	public Timer timer;
 	public GamePanel(ArrayList<Player> people,JPanel infoPanels) {
-		this.people=people;
 		this.infoPanels=infoPanels;
-		Timer timer = new Timer(30, new ActionListener() {
+		timer = new Timer(30, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	//System.out.println("Repaint");
                 repaint();
             }
         });
@@ -466,31 +448,12 @@ class GamePanel extends JPanel{
 		g.setFont(new Font("SansSerif",Font.BOLD,25));
 		Player player1=people.get(0);
 			if(player1.getHeart()<=0) {
-				lose();
+				Client.lose();
+				timer.stop();
 			}
 			g.drawString(" Name:"+player1.getName(), 1150, 50);
 			g.drawString(" Heart:"+player1.getHeart(), 1150, 100);
 			g.drawString(" Attack:"+player1.getAttack(), 1150, 150);
-			
-		
-		/*infoPanels.removeAll();
-		for(Player player:people) {
-			JPanel infoPanel=new JPanel();
-			infoPanel.setLayout(new GridLayout(3,1));
-			infoPanel.setPreferredSize(new Dimension(200,100));
-			infoPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
-			JLabel name=new JLabel("Name:"+player.getName());
-			name.setFont(new Font("SansSerif", Font.BOLD, 25));
-			JLabel heart=new JLabel("Heart:"+(player.getHeart()));
-			heart.setFont(new Font("SansSerif", Font.BOLD, 25));
-			JLabel attack=new JLabel("Attack:"+player.getAttack());
-			attack.setFont(new Font("SansSerif", Font.BOLD, 25));
-			infoPanel.add(name);
-			infoPanel.add(heart);
-			infoPanel.add(attack);
-			infoPanels.add(infoPanel);
-		}*/
-		
 		
 		Image bg;//背景贴图
 		Image image1;//人物贴图
@@ -499,7 +462,6 @@ class GamePanel extends JPanel{
 		int y0=people.get(0).getY();
 			
 		File file = new File("pic//"+people.get(0).getStatus()+".jpg");
-		System.out.println(people.get(0).getStatus());
 		try {
 			image1 = ImageIO.read(file);
 			bg=ImageIO.read(fileBg);
@@ -521,7 +483,6 @@ class GamePanel extends JPanel{
 			if(bullet.getStatus()=='w') {
 				if(!Obstacle.stopw(bullet.getX(), bullet.getY())) {
 					people.get(0).minusHeart(1);
-					System.out.println(people.get(0).getHeart());
 					bullets.remove(bullet);
 				}
 				if(bullet.getAttack()==10) {
@@ -539,7 +500,6 @@ class GamePanel extends JPanel{
 				}else {
 					bullet.kminusX();
 				}
-				//bullet.jminusX();
 			}else if(bullet.getStatus()=='s') {
 				if(!Obstacle.stops(bullet.getX(), bullet.getY()-80)) {
 					people.get(0).minusHeart(1);
@@ -550,7 +510,6 @@ class GamePanel extends JPanel{
 				}else {
 					bullet.kaddY();
 				}
-				//bullet.jaddY();
 			}else if(bullet.getStatus()=='d') {
 				if(!Obstacle.stopd(bullet.getX()-80, bullet.getY())) {
 					people.get(0).minusHeart(1);
@@ -561,7 +520,6 @@ class GamePanel extends JPanel{
 				}else {
 					bullet.kaddX();
 				}
-				//bullet.jaddX();
 			}else {
 				if(!Obstacle.stopd(bullet.getX(), bullet.getY())) {
 					people.get(0).minusHeart(1);
@@ -572,102 +530,38 @@ class GamePanel extends JPanel{
 				}else {
 					bullet.kaddX();
 				}
-				//bullet.jaddX();
 			}
-			if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>1000) {
+			if(bullet.getX()<0||bullet.getX()>1200||bullet.getY()<0||bullet.getY()>1000) {
 				people.get(0).setBehaviour('0');
 				bullets.remove(bullet);
 			}
+			
+			
+			//击中其他玩家
 			int index=bullet.hurt();
 			int attack=bullet.getAttack();
 			if(index!=-1) {
-				people.get(index).minusHeart(attack);
+				if(attack==10) {
+					toServer("{attacked1:"+people.get(index).getName()+"}");
+				}else if(attack==20) {
+					toServer("{attacked2:"+people.get(index).getName()+"}");
+				}
+				bullets.remove(bullet);
 			}
+			
+			
 			repaint();
 			}
-			/*switch(people.get(0).getBehaviour()) {
-				case 'j':*/
-			/*		g.setColor(Color.RED);
-					for(Bullet bullet:bullets) {
-					g.fillRect(bullet.getX(), bullet.getY(), 10, 10);
-					if(bullet.getStatus()=='w') {
-						bullet.jminusY();
-					}else if(bullet.getStatus()=='a') {
-						bullet.jminusX();
-					}else if(bullet.getStatus()=='s') {
-						bullet.jaddY();
-					}else if(bullet.getStatus()=='d') {
-						bullet.jaddX();
-					}else {
-						bullet.jaddX();
-					}
-					if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>1000) {
-						people.get(0).setBehaviour('0');
-						bullets.remove(bullet);
-					}
-					int index=bullet.hurt();
-					int attack=bullet.getAttack();
-					if(index!=-1) {
-						people.get(index).minusHeart(attack);
-					}
-					repaint();
-					}*/
-				//	break;
-				/*case 'k':*/
-				/*	g.setColor(Color.BLUE);
-					for(Bullet bullet:bullets) {
-					g.fillRect(bullet.getX(), bullet.getY(), 20, 20);
-					if(bullet.getStatus()=='w') {
-						bullet.kminusY();
-					}else if(bullet.getStatus()=='a') {
-						bullet.kminusX();
-					}else if(bullet.getStatus()=='s') {
-						bullet.kaddY();
-					}else if(bullet.getStatus()=='d') {
-						bullet.kaddX();
-					}else {}
-						int index=bullet.hurt();
-						int attack=bullet.getAttack();
-						if(index!=-1) {
-							people.get(index).minusHeart(attack);
-						}
-						if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>800) {
-							people.get(0).setBehaviour('0');
-							bullets.remove(bullet);
-						}
-						repaint();
-					}
-				*/
-				/*	break;
-				case 'u':
-					for(int j=0;j<12;j++) {
-						Image Up;
-						File fileUp = new File("pic//Level Up Effect Frame"+j+".png");
-						try {
-							try {
-								Thread.sleep(1000);
-							} catch (InterruptedException e) {}
-							image1 = ImageIO.read(fileUp);
-							Up=ImageIO.read(fileUp);
-							g.drawImage(Up,x0-50, y0-50, this);
-						} catch (IOException e) {}
-					}
-					people.get(0).setBehaviour('0');
-					repaint();
-					break;
-				default:
-					break;
-			}	*/
-			
+
 		/**Player 2*/
+		if(livePlayer2) {
 		Player player2=people.get(1);
-		/*if(player2.getHeart()<=0) {
-			lose();
-		}*/
+		//if(player2.getHeart()<=0) {
+		//	lose();
+		//}
 		g.drawString(" Name:"+player2.getName(), 1150, 250);
 		g.drawString(" Heart:"+player2.getHeart(), 1150, 300);
 		g.drawString(" Attack:"+player2.getAttack(), 1150, 350);
-			/**People2*/
 			Image image2;//人物贴图
 			int x1=people.get(1).getX();
 			int y1=people.get(1).getY();
@@ -680,79 +574,7 @@ class GamePanel extends JPanel{
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			switch(people.get(1).getBehaviour()) {
-			case 'j':
-				g.setColor(Color.RED);
-				for(Bullet bullet:bullets) {
-				g.fillRect(bullet.getX(), bullet.getY(), 10, 10);
-				if(bullet.getStatus()=='w') {
-					bullet.jminusY();
-				}else if(bullet.getStatus()=='a') {
-					bullet.jminusX();
-				}else if(bullet.getStatus()=='s') {
-					bullet.jaddY();
-				}else if(bullet.getStatus()=='d') {
-					bullet.jaddX();
-				}else {
-					bullet.jaddX();
-				}
-				if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>1000) {
-					people.get(1).setBehaviour('0');
-					bullets.remove(bullet);
-				}
-				int index=bullet.hurt();
-				int attack=bullet.getAttack();
-				if(index!=-1) {
-					people.get(index).minusHeart(attack);
-				}
-				repaint();
-				}
-				break;
-			case 'k':
-				g.setColor(Color.BLUE);
-				for(Bullet bullet:bullets) {
-				g.fillRect(bullet.getX(), bullet.getY(), 20, 20);
-				if(bullet.getStatus()=='w') {
-					bullet.kminusY();
-				}else if(bullet.getStatus()=='a') {
-					bullet.kminusX();
-				}else if(bullet.getStatus()=='s') {
-					bullet.kaddY();
-				}else if(bullet.getStatus()=='d') {
-					bullet.kaddX();
-				}else {}
-					int index=bullet.hurt();
-					int attack=bullet.getAttack();
-					if(index!=-1) {
-						people.get(index).minusHeart(attack);
-					}
-					if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>800) {
-						people.get(1).setBehaviour('0');
-						bullets.remove(bullet);
-					}
-					repaint();
-				}
-
-				break;
-			case 'u':
-				for(int j=0;j<12;j++) {
-					Image Up;
-					File fileUp = new File("pic//Level Up Effect Frame"+j+".png");
-					try {
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {}
-						image1 = ImageIO.read(fileUp);
-						Up=ImageIO.read(fileUp);
-						g.drawImage(Up,x0-50, y0-50, this);
-					} catch (IOException e) {}
-				}
-				people.get(0).setBehaviour('0');
-				repaint();
-				break;
-			default:
-				break;
-		}	
+		}
 			/**Player 3*/
 			/*Player player3=people.get(2);
 			if(player3.getHeart()<=0) {
@@ -773,95 +595,7 @@ class GamePanel extends JPanel{
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				switch(people.get(2).getBehaviour()) {
-				case 'j':
-					g.setColor(Color.RED);
-					for(Bullet bullet:bullets) {
-					g.fillRect(bullet.getX(), bullet.getY(), 10, 10);
-					if(bullet.getStatus()=='w') {
-						bullet.jminusY();
-					}else if(bullet.getStatus()=='a') {
-						bullet.jminusX();
-					}else if(bullet.getStatus()=='s') {
-						bullet.jaddY();
-					}else if(bullet.getStatus()=='d') {
-						bullet.jaddX();
-					}else {
-						bullet.jaddX();
-					}
-					if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>1000) {
-						people.get(2).setBehaviour('0');
-						bullets.remove(bullet);
-					}
-					int index=bullet.hurt();
-					int attack=bullet.getAttack();
-					if(index!=-1) {
-						people.get(index).minusHeart(attack);
-					}
-					repaint();
-					}
-					break;
-				case 'k':
-					g.setColor(Color.BLUE);
-					for(Bullet bullet:bullets) {
-					g.fillRect(bullet.getX(), bullet.getY(), 20, 20);
-					if(bullet.getStatus()=='w') {
-						bullet.kminusY();
-					}else if(bullet.getStatus()=='a') {
-						bullet.kminusX();
-					}else if(bullet.getStatus()=='s') {
-						bullet.kaddY();
-					}else if(bullet.getStatus()=='d') {
-						bullet.kaddX();
-					}else {}
-						int index=bullet.hurt();
-						int attack=bullet.getAttack();
-						if(index!=-1) {
-							people.get(index).minusHeart(attack);
-						}
-						if(bullet.getX()<0||bullet.getX()>1000||bullet.getY()<0||bullet.getY()>800) {
-							people.get(2).setBehaviour('0');
-							bullets.remove(bullet);
-						}
-						repaint();
-					}
-
-					break;
-				case 'u':
-					for(int j=0;j<12;j++) {
-						Image Up;
-						File fileUp = new File("pic//Level Up Effect Frame"+j+".png");
-						try {
-							try {
-								Thread.sleep(1000);
-							} catch (InterruptedException e) {}
-							image1 = ImageIO.read(fileUp);
-							Up=ImageIO.read(fileUp);
-							g.drawImage(Up,x0-50, y0-50, this);
-						} catch (IOException e) {}
-					}
-					people.get(0).setBehaviour('0');
-					repaint();
-					break;
-				default:
-					break;
-			}	
 					*/
-			
-			
-			
 		}
-	private void lose() {
-		// TODO Auto-generated method stub
-		this.setVisible(false);
-		JFrame loseFrame=new JFrame();
-		loseFrame.setSize(new Dimension(1000,1000));
-		loseFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		JLabel die=new JLabel("You are die");
-		die.setFont(new Font("SansSerif",Font.BOLD,100));
-		loseFrame.getContentPane().add(die);
-		
-		loseFrame.pack();
-		loseFrame.setVisible(true);
-	}
+}
 }
