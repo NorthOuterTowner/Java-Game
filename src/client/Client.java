@@ -1,7 +1,5 @@
 package client;
 
-//396-397 is important of 3 people
-
 /*
  * Client.java
  * |
@@ -71,18 +69,7 @@ public class Client extends JFrame implements KeyListener{
 		Player player=new Player(sign.getName());//From sign
 		client.people.add(player);
 		client.toServer("join");
-		//client.init();
-		
-		/*将本用户写入文件中*/
-		/*try {
-			System.out.println("in:"+player);
-			client.playerOut.writeObject(player);
-			client.playerOut.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-		//client.init();
+
 		//大厅判断人数
 		Hall hall=new Hall();
 		boolean outJustOnes=true;
@@ -102,38 +89,7 @@ public class Client extends JFrame implements KeyListener{
 				System.out.println("Hall wait");
 			}
 		}
-		
-		/*ObjectInputStream playerIn;
-		Player playerAnother;
-		Object obj;*/
-		//Use String sent by Server build object
-		
-		/*从文件中读取其他用户的信息*/
-		/*try {
-			FileInputStream fs=new FileInputStream("player.dat");
-			playerIn = new ObjectInputStream(fs);
-			while((obj=playerIn.readObject())!=null) {//invalid type code: AC
-				playerAnother =(Player)obj;
-				if (!playerAnother.getName().equals(player.getName())) {
-					client.people.add(playerAnother);
-				}
-				fs.skip(4);
-			}
-			playerIn.close();
-			//client.init();
-		}catch(EOFException e) {
-			
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}finally {
-			client.init();
-			new AudioPlayer().playSound("tst.wav");
-		}*/
-		//初始化界面
+
 		client.init();
 		//播放背景音乐
 		new AudioPlayer().playSound("tst.wav");
@@ -157,27 +113,6 @@ public class Client extends JFrame implements KeyListener{
 	public void init() {
 		gamePanel.setSize(new Dimension(1300,800));
 		this.getContentPane().add(gamePanel,BorderLayout.CENTER);
-		/*InfoPanel 在右侧展示信息*/
-		/*infoPanels.setLayout(new GridLayout(5,1));
-		infoPanels.setPreferredSize(new Dimension(200,100));
-		infoPanels.setBorder(new BevelBorder(BevelBorder.RAISED));*/
-		
-		/*for(Player player:people) {
-			JPanel infoPanel=new JPanel();
-			infoPanel.setLayout(new GridLayout(3,1));
-			infoPanel.setPreferredSize(new Dimension(200,100));
-			infoPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
-			JLabel name=new JLabel("Name:"+player.getName());
-			name.setFont(new Font("SansSerif", Font.BOLD, 25));
-			JLabel heart=new JLabel("Heart:"+player.getHeart());
-			heart.setFont(new Font("SansSerif", Font.BOLD, 25));
-			JLabel attack=new JLabel("Attack:"+player.getAttack());
-			attack.setFont(new Font("SansSerif", Font.BOLD, 25));
-			infoPanel.add(name);
-			infoPanel.add(heart);
-			infoPanel.add(attack);
-			infoPanels.add(infoPanel);
-		}*/
 		
 		this.getContentPane().add(infoPanels,BorderLayout.EAST);
 		this.setVisible(true);
@@ -400,6 +335,12 @@ private class RemoteReader implements Runnable{
 	            			if(waitPlayer!=null) {
 	            				people.add(waitPlayer);
 	            			}
+	            		}else if(type.equals("attacked0")) {
+	            			for(Player player:people) {
+	            				if(func.equals(player.getName())) {
+	            					player.minusHeart(1);
+	            				}
+	            			}
 	            		}else if(type.equals("attacked1")) {
 	            			for(Player player:people) {
 	            				if(func.equals(player.getName())) {
@@ -482,6 +423,7 @@ private class GamePanel extends JPanel{
 			
 			if(bullet.getStatus()=='w') {
 				if(!Obstacle.stopw(bullet.getX(), bullet.getY())) {
+					toServer("{attacked0:"+people.get(0).getName()+"}");
 					people.get(0).minusHeart(1);
 					bullets.remove(bullet);
 				}
@@ -492,6 +434,7 @@ private class GamePanel extends JPanel{
 				}
 			}else if(bullet.getStatus()=='a') {
 				if(!Obstacle.stopa(bullet.getX(), bullet.getY())) {
+					toServer("{attacked0:"+people.get(0).getName()+"}");
 					people.get(0).minusHeart(1);
 					bullets.remove(bullet);
 				}
@@ -502,6 +445,7 @@ private class GamePanel extends JPanel{
 				}
 			}else if(bullet.getStatus()=='s') {
 				if(!Obstacle.stops(bullet.getX(), bullet.getY()-80)) {
+					toServer("{attacked0:"+people.get(0).getName()+"}");
 					people.get(0).minusHeart(1);
 					bullets.remove(bullet);
 				}
@@ -512,6 +456,7 @@ private class GamePanel extends JPanel{
 				}
 			}else if(bullet.getStatus()=='d') {
 				if(!Obstacle.stopd(bullet.getX()-80, bullet.getY())) {
+					toServer("{attacked0:"+people.get(0).getName()+"}");
 					people.get(0).minusHeart(1);
 					bullets.remove(bullet);
 				}
@@ -522,6 +467,7 @@ private class GamePanel extends JPanel{
 				}
 			}else {
 				if(!Obstacle.stopd(bullet.getX(), bullet.getY())) {
+					toServer("{attacked0:"+people.get(0).getName()+"}");
 					people.get(0).minusHeart(1);
 					bullets.remove(bullet);
 				}
@@ -576,7 +522,7 @@ private class GamePanel extends JPanel{
 			}
 		}
 			/**Player 3*/
-			/*Player player3=people.get(2);
+			Player player3=people.get(2);
 			if(player3.getHeart()<=0) {
 				lose();
 			}
@@ -591,11 +537,10 @@ private class GamePanel extends JPanel{
 				try {
 					image3 = ImageIO.read(file2);
 					g.drawImage(image3,x2, y2, this);
-					
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-					*/
+					
 		}
 }
 }
