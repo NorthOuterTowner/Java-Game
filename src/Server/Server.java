@@ -1,5 +1,5 @@
 package server;
-
+//Line 113 Control number of people which could start the game
 /*Server class
  * Link with Client
  */
@@ -17,29 +17,23 @@ public class Server {
 	private PrintWriter  out;
 	private ArrayList<PrintWriter> clients=new ArrayList<PrintWriter>(100);
 	private final static int port=4450;
-    public JTextArea textclients=new JTextArea();
+    
+	public JTextArea textclients=new JTextArea();
     public JTextArea textinfo=new JTextArea();
     public JPanel leftPanel = new JPanel();
     public JPanel rightPanel = new JPanel();
-    /*用String[]存入每个*/
+    
+    /*用String[]存入每个加入信息*/
     private String[] joinMessageCache=new String[3];
     private ServerSocket serverSocket;
+    
     public int hallClient=0;
+    
     private Log log=new Log();
-    /*将文件数据清空*/
-    private void clear() {
-		String fileClear = "player.dat";
-        try (FileOutputStream fos = new FileOutputStream(fileClear)) {
-            fos.getChannel().truncate(0);
-            System.out.println("File content cleared successfully.");
-        } catch (IOException e) {
-        	log.warning(e.getMessage());
-        }
-    }
-    /*start() method 建立连接*/
+    /*start建立连接*/
     public void start() {
     	try {
-    		clear();
+    		//clear();
     		log.info("Server:start");
     		serverSocket = new ServerSocket(port);
     		System.out.println("Server starting successfully.");
@@ -100,13 +94,19 @@ public class Server {
 			}else if(type.equals("attack2")) {
 				textinfo.append(allMessage+"\n");
 				//broadcastMessage("{"+allMessage+"}");
+			}else if(type.equals("attacked0")) {
+				textinfo.append(allMessage+"\n");
+				broadcastMessage("{"+allMessage+"}");
 			}else if(type.equals("attacked1")) {
 				textinfo.append(allMessage+"\n");
 				broadcastMessage("{"+allMessage+"}");
 			}else if(type.equals("attacked2")) {
 				textinfo.append(allMessage+"\n");
 				broadcastMessage("{"+allMessage+"}");
-			}else if(type.equals("hall")) {
+			}else if(type.equals("die")) {
+				textinfo.append(allMessage+"\n");
+				broadcastMessage("{"+allMessage+"}");
+			} else if(type.equals("hall")) {
 				textinfo.append(allMessage+"\n");
 				this.hallClient+=1;
 				textinfo.append(this.hallClient+"\n");
@@ -119,9 +119,6 @@ public class Server {
 						broadcastMessage("{"+joinMessageSub+"}");
 					}
 				}
-				/*if(joinMessageCache.charAt(0)=='{') {
-					broadcastMessage(joinMessageCache);
-				}*/
 			}else if(type.equals("player")) {
 				broadcastMessage(message);
 			}
@@ -232,8 +229,6 @@ public class Server {
     //数据已经格式化，直接输出
     private void broadcastMessage(String message) {
         for (PrintWriter out : clients) {
-        	out.println("word");
-        	textinfo.append(message+"加了");
             out.println(message);
         }
     }
