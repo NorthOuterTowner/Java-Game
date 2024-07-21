@@ -3,14 +3,16 @@ package client.info;
 import java.io.*;
 import java.util.*;
 
+import client.Status;
+
 public class Player implements Serializable{
 	private String name;
 	private int x;
 	private int y;
-	private int heart=100;
+	private int heart=500;
 	private int attack=10;
 	//status记录用户状态，使用户在发射子弹时根据朝向发射
-	private char status='s';
+	private Status status=new Status();
 	//behaviour记录用户行为
 	private char behaviour='s';
 	public Player(String name) {
@@ -25,10 +27,10 @@ public class Player implements Serializable{
 		return this.behaviour;
 	}
 	public void setStatus(char status) {
-		this.status=status;
+		this.status.setOrient(status);;
 	}
 	public char getStatus() {
-		return this.status;
+		return this.status.getOrient();
 	}
 	public String getName() {
 		return this.name;
