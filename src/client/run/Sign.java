@@ -6,14 +6,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import util.ExcelReader;
 public class Sign{
 	private boolean status=false;
 	private JFrame frame=new JFrame("Sign");
 	JTextField nameInput;
+	JLabel info;
 	public Sign() {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLayout(new GridLayout(5,1));
+		frame.setLayout(new GridLayout(6,1));
 		frame.setLocation(400, 200);
 		JLabel nameLabel=new JLabel("UserName:");
 		nameInput=new JTextField(20);
@@ -42,6 +43,7 @@ public class Sign{
 		
 		JPanel change1=new JPanel();
 		JPanel change2=new JPanel();
+		info=new JLabel();
 		change1.add(changeToUp);
 		change2.add(changeToIn);
 		sign1.add(signIn);
@@ -50,6 +52,7 @@ public class Sign{
 		frame.add(password);
 		frame.add(sign1);
 		frame.add(change1);
+		frame.add(info);
 		frame.pack();
 		frame.setVisible(true);
 		
@@ -94,38 +97,34 @@ public class Sign{
 		});
 	}
 	public boolean signInJudge(String message) {
-		try {
-			BufferedReader reader=new BufferedReader(new FileReader("sign.txt"));
-			String line;
-            while ((line = reader.readLine()) != null) {
-            	if(message.equals(line)) {
-            		this.status=true;
-            		reader.close();
-            		frame.setVisible(false);
-            		return true;
-            	}
-            }
-            reader.close();
-		}catch(IOException ex) {}
+		String[] searchContent=message.split(" ");
+		int res=ExcelReader.search(searchContent[0],searchContent[1]);
+		if(res==ExcelReader.NAMEWITHCODE) {
+			this.status=true;
+			frame.setVisible(false);
+			return true;
+		}else if(res==ExcelReader.NAMEWITHOUTCODE) {
+			info.setText("Password is wrong");
+		}else {
+			info.setText("Don't have this account");
+		}
+		
 		return false;
 	}
 	/*在文件中添加信息*/
 	public boolean signUpJudge(String message) {
-		try {
-			BufferedReader reader=new BufferedReader(new FileReader("sign.txt"));
-			String line;
-            while ((line = reader.readLine()) != null) {
-            	if(message.equals(line)) {
-            		reader.close();
-            		return false;
-            	}
-            }
-            reader.close();
-            PrintWriter writer=new PrintWriter(new FileWriter("sign.txt",true));
-            writer.println(message);
-            writer.close();
-		}catch(IOException ex) {}
-		return true;
+		String[] searchContent=message.split(" ");
+		int res=ExcelReader.search(searchContent[0],searchContent[1]);
+		if(res==ExcelReader.WITHOUTNAME) {
+			ExcelReader.write(searchContent[0],searchContent[1]);
+			info.setText("Sign up success");
+			return true;
+		}else {
+			info.setText("You have account!Sign in,please");
+			return false;
+		}
+		
+		//return true;
 	}
 	public boolean getStatus() {
 		return this.status;
