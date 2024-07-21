@@ -8,6 +8,8 @@ import java.time.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.*;
 import javax.swing.*;
 
@@ -44,7 +46,8 @@ public class Server {
             	textinfo.append("connected\n");
             	textinfo.append("Client "+clients.size()+" connected: " + socket.getInetAddress().getHostAddress());
             //	log.info("Client "+clients.size()+" connected: " + socket.getInetAddress().getHostAddress());
-            	new Thread(new ClientHandler(socket)).start();
+            	ThreadPool.add(new ClientHandler(socket));
+            //	new Thread(new ClientHandler(socket)).start();
     		}
     	}catch(IOException e) {
     		log.warning(e.getMessage());
@@ -86,6 +89,7 @@ public class Server {
 				//broadcastMessage(allMessage);
 				if(joinMessageCache[0]!=null) {
 					for(String joinMessageSub:joinMessageCache) {
+						textinfo.append("\n"+joinMessageSub);
 						broadcastMessage("{"+joinMessageSub+"}");
 					}
 				}
@@ -233,5 +237,11 @@ public class Server {
         }
     }
 
+}
+class ThreadPool{
+	private static ExecutorService executor = Executors.newFixedThreadPool(5);
+	public static void add(Runnable task) {
+		executor.submit(task);
+	}
 }
 
