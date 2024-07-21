@@ -6,7 +6,7 @@ package client;
  */
 
 public class Status {
-	private char orient='0';
+	private char orient='s';
 	public void setOrient(char orient) {
 		this.orient=orient;
 	}

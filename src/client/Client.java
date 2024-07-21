@@ -11,9 +11,15 @@ package client;
 
 import java.net.*;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import client.info.*;
 import client.run.*;
 import server.Server;
+import util.MailConst;
+import util.MailSenderUtil;
+
 import javax.imageio.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -36,15 +42,14 @@ public class Client extends JFrame implements KeyListener{
 	private Socket connection;
 	private PrintWriter serverOut;
 	private BufferedReader serverIn;
-	private ObjectOutputStream playerOut;
 	
 	//用于绘制每个人的位置，其中people[0]为client端玩家
 	//3人对战
 	private ArrayList<Player> people= new ArrayList<Player>(3);
 	private Player waitPlayer;
 	private boolean addNewPlayer=true;
-	private JPanel infoPanels=new JPanel();
-	private GamePanel gamePanel=new GamePanel(people,infoPanels);
+	//private JPanel infoPanels=new JPanel();
+	private GamePanel gamePanel=new GamePanel(people/*,infoPanels*/);
 	
 	public ArrayList<Player> getPeople(){
 		return this.people;
@@ -69,7 +74,6 @@ public class Client extends JFrame implements KeyListener{
 		Player player=new Player(sign.getName());//From sign
 		client.people.add(player);
 		client.toServer("join");
-
 		//大厅判断人数
 		Hall hall=new Hall();
 		boolean outJustOnes=true;
@@ -111,10 +115,78 @@ public class Client extends JFrame implements KeyListener{
 		serverOut.println(message);
 	}
 	public void init() {
+		
+		
+		
+        JMenuBar menuBar = new JMenuBar();
+        JMenu aboutMenu = new JMenu("About");
+        JMenuItem aboutAuthorItem = new JMenuItem("Author");
+        JMenuItem suggestItem = new JMenuItem("Suggest");
+        aboutMenu.add(aboutAuthorItem);
+        aboutMenu.add(suggestItem);
+        menuBar.add(aboutMenu);
+        this.setJMenuBar(menuBar);
+
+        aboutAuthorItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	JFrame authorFrame=new JFrame("Author");
+            	authorFrame.getContentPane().add(new JLabel("Author@LRZ"));
+            	JButton exButton=new JButton("EXIT");
+            	authorFrame.getContentPane().add(exButton);
+            	exButton.addActionListener(new ActionListener() {
+            		public void actionPerformed(ActionEvent ex) {
+            			authorFrame.setVisible(false);
+            		}
+            	});
+            	authorFrame.pack();
+            	authorFrame.setVisible(true);
+            	
+            }
+        });
+        suggestItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	JFrame suggestFrame=new JFrame("Suggest");
+            	//suggestFrame.getContentPane().add(new JLabel("Welcome Giving me suggestion:"));
+            	JLabel tipLabel=new JLabel("Welcome Giving me suggestion:");
+            	JTextArea suggestArea=new JTextArea(1,10);
+            	JButton submitButton=new JButton("SUBMIT");
+            	JButton exButton=new JButton("EXIT");
+            	JPanel pane=new JPanel();
+            	
+            	pane.add(tipLabel,BorderLayout.NORTH);
+            	pane.add(suggestArea,BorderLayout.CENTER);
+            	pane.add(submitButton,BorderLayout.SOUTH);
+            	//pane.add(exButton);
+            	//suggestFrame.getContentPane().add(suggestArea);
+            	//suggestFrame.getContentPane().add(submitButton);
+            	suggestFrame.getContentPane().add(pane);
+            	exButton.addActionListener(new ActionListener() {
+            		public void actionPerformed(ActionEvent ex) {
+            			suggestFrame.setVisible(false);
+            		}
+            	});
+            	submitButton.addActionListener(new ActionListener() {
+            		public void actionPerformed(ActionEvent ex) {
+            			ArrayList<String> emailArray = new ArrayList<>();
+            			emailArray.add("lrz08302005@163.com");
+            			String addInfo=suggestArea.getText();
+            	        MailSenderUtil.sendMailToUserArray(emailArray,MailConst.NOTIFICATION_MAIL_TITLE,MailConst.NOTIFICATION_MAIL_CONTENT+addInfo);
+            			//MailSenderUtil.sendMailTOSingleUser(MailConst.MAIL_HOST, MailConst.NOTIFICATION_MAIL_TITLE, MailConst.NOTIFICATION_MAIL_CONTENT);
+            		}
+            	});
+            	suggestFrame.pack();
+            	suggestFrame.setVisible(true);
+            	
+            }
+        });
+		
+		
+		
+		
 		gamePanel.setSize(new Dimension(1300,800));
 		this.getContentPane().add(gamePanel,BorderLayout.CENTER);
 		
-		this.getContentPane().add(infoPanels,BorderLayout.EAST);
+		//this.getContentPane().add(/*infoPanels,*/BorderLayout.EAST);
 		this.setVisible(true);
 	}
 	
@@ -249,8 +321,9 @@ public class Client extends JFrame implements KeyListener{
 		
 		
 	    RemoteReader r = new RemoteReader();
-	    Thread thread=new Thread(r);
-	    thread.start();
+	    ThreadPool.add(r);
+	    //Thread thread=new Thread(r);
+	    //thread.start();
 	}
 
 	public static void lose() {
@@ -311,6 +384,7 @@ private class RemoteReader implements Runnable{
 	            			break;
 	            		}
 	            		String func=subContent.split(":")[1];
+	            		//考虑可能进行的添加
 	            		if(type.equals("join")) {
 	            			String addName=subContent.split(":")[1];
 	            			
@@ -320,8 +394,7 @@ private class RemoteReader implements Runnable{
 	            					waitPlayer=new Player(addName);
 	            				}
 	            			}
-	            			 */
-	            			
+	            			 */	
 	            			addNewPlayer=true;
 	            			for(Player player:people) {
 	            				if(addName.equals(player.getName())) {
@@ -370,19 +443,41 @@ private class RemoteReader implements Runnable{
 		}
 	}
 
-
+class ThreadPool{
+	private static ExecutorService executor = Executors.newFixedThreadPool(5);
+	public static void add(Runnable task) {
+		executor.submit(task);
+	}
+	
+}
 private class GamePanel extends JPanel{
 	public ArrayList<Bullet> bullets=new ArrayList<Bullet>(20);
-	public JPanel infoPanels;
-	public Timer timer;
-	public GamePanel(ArrayList<Player> people,JPanel infoPanels) {
-		this.infoPanels=infoPanels;
-		timer = new Timer(30, new ActionListener() {
+	//public JPanel infoPanels;
+	public Thread timerThread;
+	public GamePanel(ArrayList<Player> people/*,JPanel infoPanels*/) {
+		//this.infoPanels=infoPanels;
+        
+		timerThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(30);
+                        repaint();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+		/*timer = new Timer(30, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 repaint();
             }
-        });
-        timer.start();
+        });*/
+		//
+		ThreadPool.add(timerThread);
+        //timer.start();
 	}
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -390,7 +485,9 @@ private class GamePanel extends JPanel{
 		Player player1=people.get(0);
 			if(player1.getHeart()<=0) {
 				Client.lose();
-				timer.stop();
+				timerThread.interrupt();
+				//timerThread.stop();
+				//timer.stop();
 			}
 			g.drawString(" Name:"+player1.getName(), 1150, 50);
 			g.drawString(" Heart:"+player1.getHeart(), 1150, 100);
@@ -522,7 +619,8 @@ private class GamePanel extends JPanel{
 			}
 		}
 			/**Player 3*/
-			Player player3=people.get(2);
+		if(livePlayer3) {
+			Player player3=people.get(people.size()-1);
 			if(player3.getHeart()<=0) {
 				lose();
 			}
@@ -530,17 +628,17 @@ private class GamePanel extends JPanel{
 			g.drawString(" Heart:"+player3.getHeart(), 1150, 500);
 			g.drawString(" Attack:"+player3.getAttack(), 1150, 550);
 				Image image3;//人物贴图
-				int x2=people.get(2).getX();
-				int y2=people.get(2).getY();
+				int x2=people.get(people.size()-1).getX();
+				int y2=people.get(people.size()-1).getY();
 				
-				File file2 = new File("pic//"+people.get(2).getStatus()+".jpg");
+				File file2 = new File("pic//"+people.get(people.size()-1).getStatus()+".jpg");
 				try {
 					image3 = ImageIO.read(file2);
 					g.drawImage(image3,x2, y2, this);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-					
+		}
 		}
 }
 }
